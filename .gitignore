@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# VS Code
+.vscode/
+
+# 環境變數檔
+.env
+
+# pip 依賴清單暫存
+pip-log.txt
+
+# 虛擬環境資料
+venv/
+myenv/
+env/
+ENV/
+
+# Mac 系統垃圾
+.DS_Store
+
