@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.DS_Store
+.python-version
+.idea/
+.vscode/
+.venv/
+venv/
+env/
+locus.json
+cie1931.csv
