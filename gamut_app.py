@@ -12,6 +12,28 @@ from PySide6.QtGui import QFont, QPalette, QColor
 # 引入核心計算模組與配置
 from cal import Triangle, calculate_coverage
 from config import DARK_STYLE, D65_WHITE
+import platform
+import matplotlib
+from matplotlib.font_manager import FontProperties
+
+def apply_chinese_font():
+    """ 為 Matplotlib 設定支援中文的字體（跨平台方案） """
+    system = platform.system()
+    fonts = []
+    if system == 'Windows':
+        fonts = ['Microsoft JhengHei', 'SimHei', 'Arial']
+    elif system == 'Darwin': # macOS
+        fonts = ['Heiti TC', 'Arial Unicode MS', 'PingFang HK', 'Hiragino Sans TC']
+    else: # Linux
+        fonts = ['Noto Sans CJK TC', 'WenQuanYi Micro Hei', 'Droid Sans Fallback']
+    
+    # 設置全域字體家族與具名字體
+    matplotlib.rcParams['font.family'] = 'sans-serif'
+    matplotlib.rcParams['font.sans-serif'] = fonts + matplotlib.rcParams['font.sans-serif']
+    matplotlib.rcParams['axes.unicode_minus'] = False # 解決負號呈現為方塊的問題
+    
+    # 返回首選字體以供手動設置
+    return fonts[0] if fonts else None
 
 def load_cie_data(filepath):
     """
@@ -129,8 +151,11 @@ class GamutApp(QMainWindow):
         left_panel.addWidget(res_group)
         left_panel.addStretch()
 
-        # 右側繪圖區域
+        # 套用繪圖樣式並設定中文字體
         plt.style.use('dark_background')
+        font_name = apply_chinese_font()
+        self.font_prop = FontProperties(family=font_name) if font_name else None
+        
         self.figure, self.ax = plt.subplots(figsize=(8, 8), dpi=100)
         self.canvas = FigureCanvas(self.figure)
         self.canvas.setStyleSheet("background-color:transparent;")
@@ -195,13 +220,22 @@ class GamutApp(QMainWindow):
         # 設定座標軸樣式
         self.ax.set_xlim(-0.05, 0.85)
         self.ax.set_ylim(-0.05, 0.95)
-        self.ax.set_xlabel('CIE x', color='#aaaaaa', fontweight='bold')
-        self.ax.set_ylabel('CIE y', color='#aaaaaa', fontweight='bold')
+        if self.font_prop:
+            self.ax.set_xlabel('CIE x', color='#aaaaaa', fontweight='bold', fontproperties=self.font_prop)
+            self.ax.set_ylabel('CIE y', color='#aaaaaa', fontweight='bold', fontproperties=self.font_prop)
+        else:
+            self.ax.set_xlabel('CIE x', color='#aaaaaa', fontweight='bold')
+            self.ax.set_ylabel('CIE y', color='#aaaaaa', fontweight='bold')
         self.ax.tick_params(colors='#777777')
         self.ax.grid(True, linestyle=':', alpha=0.15)
         
-        self.ax.legend(facecolor='#1e1e1e', edgecolor='#333333', fontsize=9, loc='upper right')
-        self.ax.set_title("色域覆蓋率分析可視化", color='white', pad=25, fontdict={'fontsize': 16, 'fontweight': 'bold'})
+        # 使用顯式字體屬性以確保中文顯示
+        legend = self.ax.legend(facecolor='#1e1e1e', edgecolor='#333333', fontsize=9, loc='upper right')
+        if self.font_prop:
+            plt.setp(legend.get_texts(), fontproperties=self.font_prop)
+            self.ax.set_title("色域覆蓋率分析可視化", color='white', pad=25, fontproperties=self.font_prop, fontsize=16, fontweight='bold')
+        else:
+            self.ax.set_title("色域覆蓋率分析可視化", color='white', pad=25, fontdict={'fontsize': 16, 'fontweight': 'bold'})
         
         # 在光譜軌跡上標註特定波長位置
         if len(WAVELENGTHS) > 0:
