@@ -1,5 +1,6 @@
 import sys
 import csv
+from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
@@ -68,7 +69,7 @@ def load_cie_data(filepath):
     return np.array(locus_x), np.array(locus_y), np.array(wavelengths)
 
 # 全域載入 CIE 光譜數據
-SPECTRAL_LOCUS_X, SPECTRAL_LOCUS_Y, WAVELENGTHS = load_cie_data('CIE_xyz_1931_2deg.csv')
+SPECTRAL_LOCUS_X, SPECTRAL_LOCUS_Y, WAVELENGTHS = load_cie_data(Path(__file__).with_name('CIE_xyz_1931_2deg.csv'))
 
 # 常見色域標準預設值
 STANDARDS = {
